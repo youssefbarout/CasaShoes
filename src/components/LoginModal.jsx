@@ -6,6 +6,10 @@ export default function LoginModal({ onSuccess, onClose }) {
   const [tab, setTab] = useState("user");
   const [userPrenom, setUserPrenom] = useState("");
   const [userNom, setUserNom] = useState("");
+  const [userPassword, setUserPassword] = useState("");
+  const [userConfirmPassword, setUserConfirmPassword] = useState("");
+  const [showUserPassword, setShowUserPassword] = useState(false);
+  const [showUserConfirmPassword, setShowUserConfirmPassword] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -15,9 +19,11 @@ export default function LoginModal({ onSuccess, onClose }) {
   const handleUserLogin = (e) => {
     e.preventDefault();
     if (!userPrenom.trim() || !userNom.trim()) { setError("Veuillez entrer votre prénom et nom."); return; }
+    if (userPassword.length < 6) { setError("Le mot de passe doit contenir au moins 6 caractères."); return; }
+    if (userPassword !== userConfirmPassword) { setError("La confirmation du mot de passe ne correspond pas."); return; }
     setLoading(true);
     setTimeout(() => {
-      onSuccess("user", `${userPrenom.trim()} ${userNom.trim()}`);
+      onSuccess("user", userPrenom.trim(), userNom.trim());
     }, 400);
   };
 
@@ -158,6 +164,78 @@ export default function LoginModal({ onSuccess, onClose }) {
                     className="w-full bg-white/5 border border-white/10 text-white pl-10 pr-4 py-3 rounded-xl text-sm outline-none placeholder-white/25 focus:border-cyan-500/60 focus:bg-cyan-500/5 transition-all"
                   />
                 </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-white/50 text-xs font-semibold uppercase tracking-wider">Mot de passe</label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30">
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" />
+                  </svg>
+                </span>
+                <input
+                  type={showUserPassword ? "text" : "password"}
+                  value={userPassword}
+                  onChange={(e) => { setUserPassword(e.target.value); setError(""); }}
+                  placeholder="Au moins 6 caractères"
+                  autoComplete="new-password"
+                  minLength={6}
+                  required
+                  className="w-full bg-white/5 border border-white/10 text-white pl-10 pr-12 py-3 rounded-xl text-sm outline-none placeholder-white/25 focus:border-cyan-500/60 focus:bg-cyan-500/5 transition-all"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowUserPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 cursor-pointer bg-transparent border-none transition-colors p-1"
+                >
+                  {showUserPassword ? (
+                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                      <path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z" />
+                    </svg>
+                  ) : (
+                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                      <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-white/50 text-xs font-semibold uppercase tracking-wider">Confirmer le mot de passe</label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30">
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" />
+                  </svg>
+                </span>
+                <input
+                  type={showUserConfirmPassword ? "text" : "password"}
+                  value={userConfirmPassword}
+                  onChange={(e) => { setUserConfirmPassword(e.target.value); setError(""); }}
+                  placeholder="Retapez votre mot de passe"
+                  autoComplete="new-password"
+                  minLength={6}
+                  required
+                  className="w-full bg-white/5 border border-white/10 text-white pl-10 pr-12 py-3 rounded-xl text-sm outline-none placeholder-white/25 focus:border-cyan-500/60 focus:bg-cyan-500/5 transition-all"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowUserConfirmPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 cursor-pointer bg-transparent border-none transition-colors p-1"
+                >
+                  {showUserConfirmPassword ? (
+                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                      <path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z" />
+                    </svg>
+                  ) : (
+                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                      <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
+                    </svg>
+                  )}
+                </button>
               </div>
             </div>
 

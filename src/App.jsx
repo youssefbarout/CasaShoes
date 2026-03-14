@@ -6,8 +6,12 @@ import Cart from "./components/Cart";
 import Footer from "./components/Footer";
 import Dashboard from "./components/Dashboard";
 import LoginModal from "./components/LoginModal";
+import { useLocation, useNavigate } from "react-router-dom";
 import { products as initialProducts } from "./data/products";
 import "./index.css";
+
+const LS_PRODUCTS_KEY = "casashoes_products";
+const LS_ORDERS_KEY = "casashoes_orders";
 
 const initialRecentOrders = [
   { id: "#CS-1042", client: "Yassine B.", product: "Jordan 1 Retro High", size: 42, amount: 1990, status: "Livré", date: "09/03/2026" },
@@ -19,15 +23,33 @@ const initialRecentOrders = [
   { id: "#CS-1036", client: "Mehdi T.", product: "Vans Old Skool", size: 41, amount: 699, status: "Livré", date: "06/03/2026" },
 ];
 
+function loadArrayFromStorage(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 function App() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [cartItems, setCartItems] = useState([]);
-  const [catalogProducts, setCatalogProducts] = useState(initialProducts);
-  const [adminOrders, setAdminOrders] = useState(initialRecentOrders);
+  const [catalogProducts, setCatalogProducts] = useState(() =>
+    loadArrayFromStorage(LS_PRODUCTS_KEY, initialProducts)
+  );
+  const [adminOrders, setAdminOrders] = useState(() =>
+    loadArrayFromStorage(LS_ORDERS_KEY, initialRecentOrders)
+  );
   const [cartOpen, setCartOpen] = useState(false);
-  const [dashboardOpen, setDashboardOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   const [userRole, setUserRole] = useState(() => sessionStorage.getItem("casashoes_role") || null);
   const [userName, setUserName] = useState(() => sessionStorage.getItem("casashoes_name") || "");
+  const [userPrenom, setUserPrenom] = useState(() => sessionStorage.getItem("casashoes_prenom") || "");
+  const [userNom, setUserNom] = useState(() => sessionStorage.getItem("casashoes_nom") || "");
   const [searchQuery, setSearchQuery] = useState("");
   const [scrollProgress, setScrollProgress] = useState(0);
   const [activeCategory, setActiveCategory] = useState("Tous");
@@ -43,6 +65,41 @@ function App() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem(LS_PRODUCTS_KEY, JSON.stringify(catalogProducts));
+  }, [catalogProducts]);
+
+  useEffect(() => {
+    localStorage.setItem(LS_ORDERS_KEY, JSON.stringify(adminOrders));
+  }, [adminOrders]);
+
+  const scrollToSection = (sectionId) => {
+    setTimeout(() => {
+      const el = document.getElementById(sectionId);
+      if (!el) return;
+      const navH = document.querySelector("nav")?.offsetHeight ?? 68;
+      const top = el.getBoundingClientRect().top + window.scrollY - navH - 8;
+      window.scrollTo({ top, behavior: "smooth" });
+    }, 80);
+  };
+
+  useEffect(() => {
+    const sectionByPath = {
+      "/accueil": "accueil",
+      "/produits": "produits",
+      "/categories": "categories",
+      "/contact": "contact",
+    };
+    const target = sectionByPath[location.pathname];
+    if (target) scrollToSection(target);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (location.pathname.startsWith("/dashboard") && userRole !== "admin") {
+      navigate("/", { replace: true });
+    }
+  }, [location.pathname, userRole, navigate]);
 
   const addToCart = (product) => {
     setCartItems((prev) => {
@@ -81,8 +138,20 @@ function App() {
 
   const cartCount = cartItems.reduce((sum, i) => sum + i.qty, 0);
 
-  const scrollToProducts = () => {
-    document.getElementById("produits")?.scrollIntoView({ behavior: "smooth" });
+  const sectionByPath = {
+    "/accueil": "accueil",
+    "/produits": "produits",
+    "/categories": "categories",
+    "/contact": "contact",
+  };
+
+  const navigateToSection = (path) => {
+    if (location.pathname === path && sectionByPath[path]) {
+      // Already on this route — scroll directly
+      scrollToSection(sectionByPath[path]);
+    } else {
+      navigate(path);
+    }
   };
 
   const addCartAsOrder = () => {
@@ -120,19 +189,26 @@ function App() {
         cartCount={cartCount}
         onCartOpen={() => setCartOpen(true)}
         onSearch={setSearchQuery}
+        onNavigateSection={navigateToSection}
         userRole={userRole}
         userName={userName}
+        userPrenom={userPrenom}
+        userNom={userNom}
         onLoginOpen={() => setLoginOpen(true)}
-        onDashboard={() => setDashboardOpen(true)}
+        onDashboard={() => navigate("/dashboard/overview")}
         onLogout={() => {
           sessionStorage.removeItem("casashoes_role");
           sessionStorage.removeItem("casashoes_name");
+          sessionStorage.removeItem("casashoes_prenom");
+          sessionStorage.removeItem("casashoes_nom");
           setUserRole(null);
           setUserName("");
-          setDashboardOpen(false);
+          setUserPrenom("");
+          setUserNom("");
+          navigate("/");
         }}
       />
-      <Hero onShopNow={scrollToProducts} />
+      <Hero onShopNow={() => navigateToSection("/produits")} />
       <Products
         productsData={catalogProducts}
         onAddToCart={addToCart}
@@ -140,13 +216,9 @@ function App() {
         activeCategory={activeCategory}
         onSetCategory={setActiveCategory}
       />
-      <Footer onCategorySelect={(cat) => {
+      <Footer onNavigateSection={navigateToSection} onCategorySelect={(cat) => {
         setActiveCategory(cat);
-        const el = document.getElementById('produits');
-        if (el) {
-          const navH = document.querySelector('nav')?.offsetHeight ?? 68;
-          window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - navH - 8, behavior: 'smooth' });
-        }
+        navigateToSection("/produits");
       }} />
       {cartOpen && (
         <Cart
@@ -163,31 +235,42 @@ function App() {
 
       {loginOpen && (
         <LoginModal
-          onSuccess={(role, name) => {
+          onSuccess={(role, prenom, nom = "") => {
+            const fullName = nom ? `${prenom} ${nom}` : prenom;
             sessionStorage.setItem("casashoes_role", role);
-            sessionStorage.setItem("casashoes_name", name);
+            sessionStorage.setItem("casashoes_name", fullName);
+            sessionStorage.setItem("casashoes_prenom", prenom);
+            sessionStorage.setItem("casashoes_nom", nom);
             setUserRole(role);
-            setUserName(name);
+            setUserName(fullName);
+            setUserPrenom(prenom);
+            setUserNom(nom);
             setLoginOpen(false);
-            if (role === "admin") setDashboardOpen(true);
+            if (role === "admin") navigate("/dashboard/overview");
           }}
           onClose={() => setLoginOpen(false)}
         />
       )}
 
-      {dashboardOpen && userRole === "admin" && (
+      {location.pathname.startsWith("/dashboard") && userRole === "admin" && (
         <Dashboard
           productsData={catalogProducts}
           ordersData={adminOrders}
           onProductsChange={setCatalogProducts}
           onOrdersChange={setAdminOrders}
-          onClose={() => setDashboardOpen(false)}
+          currentTab={location.pathname.split("/")[2] || "overview"}
+          onTabChange={(tab) => navigate(`/dashboard/${tab}`)}
+          onClose={() => navigate("/")}
           onLogout={() => {
             sessionStorage.removeItem("casashoes_role");
             sessionStorage.removeItem("casashoes_name");
+            sessionStorage.removeItem("casashoes_prenom");
+            sessionStorage.removeItem("casashoes_nom");
             setUserRole(null);
             setUserName("");
-            setDashboardOpen(false);
+            setUserPrenom("");
+            setUserNom("");
+            navigate("/");
           }}
         />
       )}

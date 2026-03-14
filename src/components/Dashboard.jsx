@@ -89,8 +89,8 @@ function StatCard({ icon, label, value, sub, color }) {
 }
 
 // ─── Composant principal ─────────────────────────────────────────────
-export default function Dashboard({ onClose, onLogout, productsData, ordersData, onProductsChange, onOrdersChange }) {
-  const [tab, setTab] = useState("overview");
+export default function Dashboard({ onClose, onLogout, productsData, ordersData, onProductsChange, onOrdersChange, currentTab, onTabChange }) {
+  const [internalTab, setInternalTab] = useState("overview");
   const [statusFilter, setStatusFilter] = useState("Tous");
   const [fallbackProducts, setFallbackProducts] = useState(products);
   const [fallbackOrders, setFallbackOrders] = useState(initialRecentOrders);
@@ -108,6 +108,9 @@ export default function Dashboard({ onClose, onLogout, productsData, ordersData,
   const orders = ordersData ?? fallbackOrders;
   const setLocalProducts = onProductsChange ?? setFallbackProducts;
   const setOrders = onOrdersChange ?? setFallbackOrders;
+  const allowedTabs = ["overview", "produits", "commandes"];
+  const tab = allowedTabs.includes(currentTab) ? currentTab : internalTab;
+  const changeTab = onTabChange ?? setInternalTab;
 
   const monthlySeries = buildMonthlySeries(orders, 7);
   const months = monthlySeries.map((m) => m.label);
@@ -248,7 +251,7 @@ export default function Dashboard({ onClose, onLogout, productsData, ordersData,
               {["overview", "produits", "commandes"].map((t) => (
                 <button
                   key={t}
-                  onClick={() => setTab(t)}
+                  onClick={() => changeTab(t)}
                   className={`px-4 py-1.5 rounded-full text-xs font-semibold cursor-pointer border-none capitalize transition-all ${
                     tab === t
                       ? "bg-violet-600 text-white shadow-[0_2px_10px_rgba(124,58,237,0.4)]"
@@ -382,7 +385,7 @@ export default function Dashboard({ onClose, onLogout, productsData, ordersData,
             <div className="bg-[#10101e] border border-violet-500/12 rounded-2xl overflow-hidden">
               <div className="px-6 py-4 border-b border-white/6 flex items-center justify-between">
                 <h3 className="text-white font-bold">Commandes récentes</h3>
-                <button onClick={() => setTab("commandes")} className="text-violet-400 text-xs font-semibold hover:text-violet-300 cursor-pointer bg-transparent border-none transition-colors">
+                <button onClick={() => changeTab("commandes")} className="text-violet-400 text-xs font-semibold hover:text-violet-300 cursor-pointer bg-transparent border-none transition-colors">
                   Voir tout →
                 </button>
               </div>

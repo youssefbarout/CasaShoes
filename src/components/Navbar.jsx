@@ -9,12 +9,14 @@ function smoothScrollTo(id) {
   window.scrollTo({ top, behavior: "smooth" });
 }
 
-export default function Navbar({ cartCount, onCartOpen, onSearch, onDashboard, userRole, userName, onLoginOpen, onLogout }) {
+export default function Navbar({ cartCount, onCartOpen, onSearch, onDashboard, onNavigateSection, userRole, userName, userPrenom, userNom, onLoginOpen, onLogout }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [scrolled, setScrolled] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const searchRef = useRef(null);
+  const profileRef = useRef(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
@@ -26,6 +28,9 @@ export default function Navbar({ cartCount, onCartOpen, onSearch, onDashboard, u
     const handler = (e) => {
       if (searchRef.current && !searchRef.current.contains(e.target)) {
         setShowSuggestions(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        setProfileOpen(false);
       }
     };
     document.addEventListener("mousedown", handler);
@@ -54,28 +59,31 @@ export default function Navbar({ cartCount, onCartOpen, onSearch, onDashboard, u
     e.preventDefault();
     onSearch(searchValue);
     setShowSuggestions(false);
-    smoothScrollTo("produits");
+    if (onNavigateSection) onNavigateSection("/produits");
+    else smoothScrollTo("produits");
   };
 
   const selectProduct = (name) => {
     setSearchValue(name);
     onSearch(name);
     setShowSuggestions(false);
-    smoothScrollTo("produits");
+    if (onNavigateSection) onNavigateSection("/produits");
+    else smoothScrollTo("produits");
   };
 
   const selectCategory = (cat) => {
     setSearchValue(cat);
     onSearch(cat);
     setShowSuggestions(false);
-    smoothScrollTo("produits");
+    if (onNavigateSection) onNavigateSection("/produits");
+    else smoothScrollTo("produits");
   };
 
   const navLinks = [
-    { href: "#accueil", label: "Accueil" },
-    { href: "#produits", label: "Produits" },
-    { href: "#categories", label: "Cat\u00e9gories" },
-    { href: "#contact", label: "Contact" },
+    { href: "#accueil", path: "/accueil", label: "Accueil" },
+    { href: "#produits", path: "/produits", label: "Produits" },
+    { href: "#categories", path: "/categories", label: "Cat\u00e9gories" },
+    { href: "#contact", path: "/contact", label: "Contact" },
   ];
 
   return (
@@ -89,7 +97,10 @@ export default function Navbar({ cartCount, onCartOpen, onSearch, onDashboard, u
         {/* Logo */}
         <div
           className="flex items-center gap-2 cursor-pointer"
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          onClick={() => {
+            if (onNavigateSection) onNavigateSection("/accueil");
+            else window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
         >
           <span className="text-3xl">&#x1F45F;</span>
           <span className="text-2xl font-extrabold text-white tracking-tight">
@@ -103,7 +114,12 @@ export default function Navbar({ cartCount, onCartOpen, onSearch, onDashboard, u
             <li key={l.href}>
               <a
                 href={l.href}
-                onClick={(e) => { e.preventDefault(); setMenuOpen(false); smoothScrollTo(l.href.slice(1)); }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setMenuOpen(false);
+                  if (onNavigateSection) onNavigateSection(l.path);
+                  else smoothScrollTo(l.href.slice(1));
+                }}
                 className="text-white/70 no-underline font-medium text-sm hover:text-violet-400 transition-colors relative group"
               >
                 {l.label}
@@ -212,27 +228,91 @@ export default function Navbar({ cartCount, onCartOpen, onSearch, onDashboard, u
                   </svg>
                 </button>
               )}
-              <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-full pl-1 pr-3 py-1">
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 ${
-                  userRole === "admin" ? "bg-violet-600" : "bg-cyan-600"
-                }`}>
-                  {userName.charAt(0).toUpperCase()}
-                </div>
-                <span className="text-white/75 text-sm font-medium">{userName}</span>
-                <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full ${
-                  userRole === "admin"
-                    ? "bg-violet-500/20 text-violet-400"
-                    : "bg-cyan-500/20 text-cyan-400"
-                }`}>{userRole}</span>
+
+              {/* Profile pill → dropdown */}
+              <div ref={profileRef} className="relative">
                 <button
-                  onClick={onLogout}
-                  title="Se déconnecter"
-                  className="ml-1 bg-transparent border-none text-white/30 hover:text-red-400 cursor-pointer transition-colors p-0"
+                  onClick={() => setProfileOpen((v) => !v)}
+                  className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-full pl-1 pr-3 py-1 cursor-pointer hover:border-violet-500/40 hover:bg-violet-500/8 transition-all"
                 >
-                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
-                    <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 ${
+                    userRole === "admin" ? "bg-violet-600" : "bg-cyan-600"
+                  }`}>
+                    {(userPrenom || userName).charAt(0).toUpperCase()}
+                  </div>
+                  <span className="text-white/75 text-sm font-medium">
+                    {userPrenom || userName}
+                  </span>
+                  <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full ${
+                    userRole === "admin"
+                      ? "bg-violet-500/20 text-violet-400"
+                      : "bg-cyan-500/20 text-cyan-400"
+                  }`}>{userRole}</span>
+                  {/* chevron */}
+                  <svg viewBox="0 0 24 24" fill="currentColor" className={`w-3 h-3 text-white/30 transition-transform ${profileOpen ? "rotate-180" : ""}`}>
+                    <path d="M7 10l5 5 5-5z"/>
                   </svg>
                 </button>
+
+                {/* Dropdown card */}
+                {profileOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-64 bg-[#0f0f1e] border border-violet-500/25 rounded-2xl shadow-[0_16px_40px_rgba(0,0,0,0.5)] overflow-hidden z-50">
+                    {/* Accent line */}
+                    <div className={`h-0.5 w-full ${userRole === "admin" ? "bg-gradient-to-r from-violet-600 to-purple-500" : "bg-gradient-to-r from-cyan-600 to-teal-500"}`} />
+
+                    {/* Avatar + name block */}
+                    <div className="px-5 pt-5 pb-4 flex items-center gap-4">
+                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white text-2xl font-bold flex-shrink-0 ${
+                        userRole === "admin" ? "bg-violet-600/30 border border-violet-500/40" : "bg-cyan-600/30 border border-cyan-500/40"
+                      }`}>
+                        {(userPrenom || userName).charAt(0).toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-white font-bold text-base truncate">{userName}</div>
+                        <span className={`text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full mt-1 inline-block ${
+                          userRole === "admin"
+                            ? "bg-violet-500/20 text-violet-400"
+                            : "bg-cyan-500/20 text-cyan-400"
+                        }`}>{userRole}</span>
+                      </div>
+                    </div>
+
+                    {/* Prénom / Nom rows */}
+                    <div className="px-5 pb-4 flex flex-col gap-2.5">
+                      <div className="bg-white/4 border border-white/8 rounded-xl px-4 py-2.5 flex items-center gap-3">
+                        <svg viewBox="0 0 24 24" fill="currentColor" className={`w-4 h-4 flex-shrink-0 ${userRole === "admin" ? "text-violet-400" : "text-cyan-400"}`}>
+                          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                        </svg>
+                        <div>
+                          <div className="text-white/40 text-[10px] font-semibold uppercase tracking-widest">Prénom</div>
+                          <div className="text-white text-sm font-medium">{userPrenom || "—"}</div>
+                        </div>
+                      </div>
+                      <div className="bg-white/4 border border-white/8 rounded-xl px-4 py-2.5 flex items-center gap-3">
+                        <svg viewBox="0 0 24 24" fill="currentColor" className={`w-4 h-4 flex-shrink-0 ${userRole === "admin" ? "text-violet-400" : "text-cyan-400"}`}>
+                          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                        </svg>
+                        <div>
+                          <div className="text-white/40 text-[10px] font-semibold uppercase tracking-widest">Nom</div>
+                          <div className="text-white text-sm font-medium">{userNom || "—"}</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Divider + logout */}
+                    <div className="border-t border-white/8 px-5 py-3">
+                      <button
+                        onClick={() => { setProfileOpen(false); onLogout(); }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-transparent border-none cursor-pointer text-white/50 hover:text-red-400 hover:bg-red-500/10 transition-all text-sm font-medium"
+                      >
+                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                          <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+                        </svg>
+                        Se déconnecter
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           ) : (
@@ -279,7 +359,12 @@ export default function Navbar({ cartCount, onCartOpen, onSearch, onDashboard, u
             <a
               key={l.href}
               href={l.href}
-              onClick={(e) => { e.preventDefault(); setMenuOpen(false); smoothScrollTo(l.href.slice(1)); }}
+              onClick={(e) => {
+                e.preventDefault();
+                setMenuOpen(false);
+                if (onNavigateSection) onNavigateSection(l.path);
+                else smoothScrollTo(l.href.slice(1));
+              }}
               className="text-white/80 no-underline font-medium text-base hover:text-violet-400 transition-colors"
             >
               {l.label}
