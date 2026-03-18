@@ -37,7 +37,18 @@ export default function Hero({ onShopNow }) {
           </p>
           <div className={`flex flex-wrap gap-4 mb-10 ${rv("from-left hero-line-4")}`}>
             <button
-              onClick={onShopNow}
+              onClick={() => {
+                onShopNow?.();
+                // Scroll vers produits avec délai
+                setTimeout(() => {
+                  const el = document.getElementById('produits');
+                  if (el) {
+                    const navH = document.querySelector("nav")?.offsetHeight ?? 68;
+                    const top = el.getBoundingClientRect().top + window.scrollY - navH - 8;
+                    window.scrollTo({ top, behavior: "smooth" });
+                  }
+                }, 50);
+              }}
               className="bg-gradient-to-r from-violet-600 to-purple-600 text-white border-none px-8 py-3.5 rounded-full text-base font-bold cursor-pointer hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(124,58,237,0.55)] transition-all shadow-[0_4px_20px_rgba(124,58,237,0.35)]"
             >
               Découvrir la collection →

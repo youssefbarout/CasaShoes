@@ -233,25 +233,11 @@ export default function Navbar({ cartCount, onCartOpen, onSearch, onDashboard, o
               <div ref={profileRef} className="relative">
                 <button
                   onClick={() => setProfileOpen((v) => !v)}
-                  className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-full pl-1 pr-3 py-1 cursor-pointer hover:border-violet-500/40 hover:bg-violet-500/8 transition-all"
+                  className={`w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold cursor-pointer transition-all ${
+                    userRole === "admin" ? "bg-violet-600 hover:bg-violet-500 hover:scale-110 hover:shadow-[0_0_15px_rgba(124,58,237,0.5)]" : "bg-cyan-600 hover:bg-cyan-500 hover:scale-110 hover:shadow-[0_0_15px_rgba(34,211,238,0.5)]"
+                  }`}
                 >
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 ${
-                    userRole === "admin" ? "bg-violet-600" : "bg-cyan-600"
-                  }`}>
-                    {(userPrenom || userName).charAt(0).toUpperCase()}
-                  </div>
-                  <span className="text-white/75 text-sm font-medium">
-                    {userPrenom || userName}
-                  </span>
-                  <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full ${
-                    userRole === "admin"
-                      ? "bg-violet-500/20 text-violet-400"
-                      : "bg-cyan-500/20 text-cyan-400"
-                  }`}>{userRole}</span>
-                  {/* chevron */}
-                  <svg viewBox="0 0 24 24" fill="currentColor" className={`w-3 h-3 text-white/30 transition-transform ${profileOpen ? "rotate-180" : ""}`}>
-                    <path d="M7 10l5 5 5-5z"/>
-                  </svg>
+                  {((userPrenom || "").charAt(0) + (userNom || "").charAt(0)).toUpperCase()}
                 </button>
 
                 {/* Dropdown card */}
@@ -262,10 +248,10 @@ export default function Navbar({ cartCount, onCartOpen, onSearch, onDashboard, o
 
                     {/* Avatar + name block */}
                     <div className="px-5 pt-5 pb-4 flex items-center gap-4">
-                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white text-2xl font-bold flex-shrink-0 ${
+                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white text-lg font-bold flex-shrink-0 ${
                         userRole === "admin" ? "bg-violet-600/30 border border-violet-500/40" : "bg-cyan-600/30 border border-cyan-500/40"
                       }`}>
-                        {(userPrenom || userName).charAt(0).toUpperCase()}
+                        {((userPrenom || "").charAt(0) + (userNom || "").charAt(0)).toUpperCase()}
                       </div>
                       <div className="min-w-0">
                         <div className="text-white font-bold text-base truncate">{userName}</div>

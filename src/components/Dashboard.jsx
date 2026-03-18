@@ -617,88 +617,8 @@ export default function Dashboard({ onClose, onLogout, productsData, ordersData,
                     }`}
                   >{s}</button>
                 ))}
-                <button
-                  onClick={() => {
-                    setShowAddOrderForm((v) => !v);
-                    setOrderError("");
-                  }}
-                  className={`ml-1 flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold cursor-pointer border transition-all ${
-                    showAddOrderForm
-                      ? "bg-red-500/15 border-red-500/30 text-red-400 hover:bg-red-500/25"
-                      : "bg-violet-600/20 border-violet-500/40 text-violet-300 hover:bg-violet-600/30"
-                  }`}
-                >
-                  {showAddOrderForm ? (
-                    <><svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>Annuler</>
-                  ) : (
-                    <><svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>Ajouter une commande</>
-                  )}
-                </button>
               </div>
             </div>
-
-            {showAddOrderForm && (
-              <form onSubmit={handleAddOrder} className="bg-[#10101e] border border-violet-500/25 rounded-2xl p-5 flex flex-col gap-4">
-                <h3 className="text-white font-bold text-base">Nouvelle commande</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                  <input
-                    name="client"
-                    value={orderForm.client}
-                    onChange={handleOrderFormChange}
-                    placeholder="Client (ex: Sara M.)"
-                    className="bg-white/5 border border-white/10 text-white px-3 py-2.5 rounded-xl text-sm outline-none placeholder-white/25 focus:border-violet-500/60 focus:bg-violet-500/5 transition-all"
-                    required
-                  />
-                  <input
-                    name="product"
-                    value={orderForm.product}
-                    onChange={handleOrderFormChange}
-                    placeholder="Produit"
-                    className="bg-white/5 border border-white/10 text-white px-3 py-2.5 rounded-xl text-sm outline-none placeholder-white/25 focus:border-violet-500/60 focus:bg-violet-500/5 transition-all lg:col-span-2"
-                    required
-                  />
-                  <input
-                    name="size"
-                    value={orderForm.size}
-                    onChange={handleOrderFormChange}
-                    type="number"
-                    min="1"
-                    placeholder="Pointure"
-                    className="bg-white/5 border border-white/10 text-white px-3 py-2.5 rounded-xl text-sm outline-none placeholder-white/25 focus:border-violet-500/60 focus:bg-violet-500/5 transition-all"
-                  />
-                  <input
-                    name="amount"
-                    value={orderForm.amount}
-                    onChange={handleOrderFormChange}
-                    type="number"
-                    min="1"
-                    placeholder="Montant (MAD)"
-                    className="bg-white/5 border border-white/10 text-white px-3 py-2.5 rounded-xl text-sm outline-none placeholder-white/25 focus:border-violet-500/60 focus:bg-violet-500/5 transition-all"
-                    required
-                  />
-                </div>
-
-                <div className="flex flex-wrap items-center gap-3">
-                  <select
-                    name="status"
-                    value={orderForm.status}
-                    onChange={handleOrderFormChange}
-                    className="bg-[#0f0f1e] border border-white/10 text-white px-3 py-2.5 rounded-xl text-sm outline-none focus:border-violet-500/60 transition-all cursor-pointer"
-                  >
-                    <option value="En attente">En attente</option>
-                    <option value="En cours">En cours</option>
-                    <option value="Livré">Livré</option>
-                    <option value="Annulé">Annulé</option>
-                  </select>
-
-                  <button type="submit" className="px-4 py-2.5 rounded-xl text-sm font-bold bg-gradient-to-r from-violet-600 to-purple-600 text-white border-none cursor-pointer hover:from-violet-500 hover:to-purple-500 transition-all">
-                    Ajouter la commande
-                  </button>
-                </div>
-
-                {orderError && <p className="text-red-400 text-sm m-0">{orderError}</p>}
-              </form>
-            )}
 
             <div className="bg-[#10101e] border border-violet-500/12 rounded-2xl overflow-hidden">
               <div className="overflow-x-auto">

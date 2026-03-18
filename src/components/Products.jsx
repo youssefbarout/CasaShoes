@@ -87,7 +87,18 @@ export default function Products({ productsData, onAddToCart, searchQuery, activ
           {sourceCategories.map((cat) => (
             <button
               key={cat}
-              onClick={() => setActiveCategory(cat)}
+              onClick={() => {
+                setActiveCategory(cat);
+                // Scroll to produits section
+                setTimeout(() => {
+                  const el = document.getElementById("produits");
+                  if (el) {
+                    const navH = document.querySelector("nav")?.offsetHeight ?? 68;
+                    const top = el.getBoundingClientRect().top + window.scrollY - navH - 8;
+                    window.scrollTo({ top, behavior: "smooth" });
+                  }
+                }, 50);
+              }}
               className={`px-5 py-2 rounded-full text-sm font-medium cursor-pointer transition-all border ${
                 activeCategory === cat
                   ? "bg-violet-600 border-violet-600 text-white font-bold shadow-[0_0_15px_rgba(124,58,237,0.4)]"
